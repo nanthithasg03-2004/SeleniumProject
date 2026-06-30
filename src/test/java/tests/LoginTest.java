@@ -8,7 +8,7 @@ import TestData.testdata;
 
 import java.time.Duration;
 
-public class LoginTest {
+public class LoginTest extends BaseTest {
 
     @Test
 

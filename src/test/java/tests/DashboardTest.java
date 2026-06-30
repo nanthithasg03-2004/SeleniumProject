@@ -8,7 +8,7 @@ import TestData.testdata;
 
 import java.time.Duration;
 
-public class DashboardTest {
+public class DashboardTest extends BaseTest {
 
     @Test
     public void dashboardTest() {

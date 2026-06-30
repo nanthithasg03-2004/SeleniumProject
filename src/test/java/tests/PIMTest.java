@@ -8,7 +8,7 @@ import TestData.testdata;
 
 import java.time.Duration;
 
-public class PIMTest {
+public class PIMTest extends BaseTest {
 
     @Test
     public void pimTest() {

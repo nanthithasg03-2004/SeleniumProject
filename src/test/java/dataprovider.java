@@ -1,7 +1,8 @@
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import tests.BaseTest;
 
-public class dataprovider
+public class dataprovider extends BaseTest
 {
     @Test(dataProvider="LoginData", dataProviderClass=CustomDataProvider.class)
     public void detdata(String email,String pwd)

@@ -2,8 +2,9 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
+import tests.BaseTest;
 
-public class softAssert
+public class softAssert extends BaseTest
 {
     @Test
     public void softassert()

@@ -1,6 +1,8 @@
 import org.testng.annotations.Test;
 import org.testng.annotations.*;
-public class Demo2
+import tests.BaseTest;
+
+public class Demo2 extends BaseTest
 {
 
 

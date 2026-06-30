@@ -2,11 +2,12 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import tests.BaseTest;
 
-public class HardAsset
+public class HardAsset extends BaseTest
 {
     @Test
-        public void hardasset()
+        public void hardasset ()
         {
             WebDriver driver=new ChromeDriver();
             driver.get("https://www.google.com");

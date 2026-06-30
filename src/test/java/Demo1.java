@@ -1,6 +1,8 @@
 import org.testng.annotations.Test;
 import org.testng.annotations.*;
-public class Demo1
+import tests.BaseTest;
+
+public class Demo1 extends BaseTest
 {
    @BeforeSuite
    public void beforesuit()
