@@ -58,27 +58,31 @@ jobs:
           path: ~/.m2
           key: maven-${{ hashFiles('**/pom.xml') }}
 
-      - name: Run Tests
-        run: mvn clean test
+      - name: Run Tests + Generate Allure Report
+        run: mvn clean test allure:report
         env:
           ENV: ${{ inputs.env }}
           BROWSER: ${{ inputs.browser }}
           THREADS: ${{ inputs.threads }}
 
-      - name: Generate Allure Report
-        run: mvn allure:report
-
+      # 🔥 SAFE FIX: detect correct folder automatically
       - name: Prepare Pages Folder
         shell: pwsh
         run: |
-          Write-Host "Checking Allure output folder..."
-          Get-ChildItem -Recurse target/site
-
           New-Item -ItemType Directory -Force -Path public
 
-          Copy-Item -Path "target/site/allure-maven-plugin/*" -Destination public -Recurse -Force
+          if (Test-Path "target/site/allure-maven-plugin") {
+            Copy-Item "target/site/allure-maven-plugin/*" public -Recurse -Force
+          }
+          elseif (Test-Path "target/site/allure-report") {
+            Copy-Item "target/site/allure-report/*" public -Recurse -Force
+          }
+          else {
+            Write-Host "ERROR: Allure report folder not found"
+            Get-ChildItem -Recurse target/site
+            exit 1
+          }
 
-          Write-Host "Public folder contents:"
           Get-ChildItem public
 
       - name: Upload Pages Artifact
