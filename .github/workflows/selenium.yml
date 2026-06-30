@@ -65,24 +65,27 @@ jobs:
           BROWSER: ${{ inputs.browser }}
           THREADS: ${{ inputs.threads }}
 
-      # 🔥 SAFE FIX: detect correct folder automatically
+      # 🔥 ALWAYS FIND REAL index.html (NO GUESSING)
       - name: Prepare Pages Folder
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path public
 
-          if (Test-Path "target/site/allure-maven-plugin") {
-            Copy-Item "target/site/allure-maven-plugin/*" public -Recurse -Force
-          }
-          elseif (Test-Path "target/site/allure-report") {
-            Copy-Item "target/site/allure-report/*" public -Recurse -Force
-          }
-          else {
-            Write-Host "ERROR: Allure report folder not found"
-            Get-ChildItem -Recurse target/site
+          $index = Get-ChildItem -Path target -Recurse -Filter index.html | Select-Object -First 1
+
+          if ($null -eq $index) {
+            Write-Host "ERROR: index.html NOT FOUND - Allure report not generated"
+            Get-ChildItem -Recurse target
             exit 1
           }
 
+          Write-Host "Found report: $($index.FullName)"
+
+          $source = Split-Path $index.FullName
+
+          Copy-Item "$source\*" public -Recurse -Force
+
+          Write-Host "Public folder contents:"
           Get-ChildItem public
 
       - name: Upload Pages Artifact
