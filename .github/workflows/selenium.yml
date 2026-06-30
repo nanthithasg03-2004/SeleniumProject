@@ -46,21 +46,18 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Setup Java
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: ${{ inputs.version }}
 
-      # Cache Maven
       - name: Cache Maven Dependencies
         uses: actions/cache@v4
         with:
           path: ~/.m2
           key: maven-${{ hashFiles('**/pom.xml') }}
 
-      # Run Selenium Tests
       - name: Execute Selenium Tests
         run: mvn clean test
         env:
@@ -68,11 +65,17 @@ jobs:
           BROWSER: ${{ inputs.browser }}
           THREADS: ${{ inputs.threads }}
 
-      # Generate Allure Report
       - name: Generate Allure Report
         run: mvn allure:report
 
-      # Upload report for GitHub Pages
+      # DEBUG STEP
+      - name: List Generated Files
+        run: |
+          dir
+          dir target
+          dir target\site
+          dir target\site /s
+
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -88,5 +91,5 @@ jobs:
 
       - name: Show Report URL
         run: |
-          echo "## Allure Report" >> $GITHUB_STEP_SUMMARY
-          echo "https://nanthithasg03-2004.github.io/SeleniumProject/" >> $GITHUB_STEP_SUMMARY
+          echo "## Allure Report" >> $env:GITHUB_STEP_SUMMARY
+          echo "https://nanthithasg03-2004.github.io/SeleniumProject/" >> $env:GITHUB_STEP_SUMMARY
