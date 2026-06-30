@@ -71,8 +71,15 @@ jobs:
       - name: Prepare Pages Folder
         shell: pwsh
         run: |
+          Write-Host "Checking Allure output folder..."
+          Get-ChildItem -Recurse target/site
+
           New-Item -ItemType Directory -Force -Path public
-          Copy-Item -Path target/site/allure-maven-plugin/* -Destination public -Recurse -Force
+
+          Copy-Item -Path "target/site/allure-maven-plugin/*" -Destination public -Recurse -Force
+
+          Write-Host "Public folder contents:"
+          Get-ChildItem public
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
