@@ -42,6 +42,9 @@ jobs:
   run-tests:
     runs-on: windows-latest
 
+    environment:
+      name: github-pages
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -57,6 +60,8 @@ jobs:
         with:
           path: ~/.m2
           key: maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            maven-
 
       - name: Execute Selenium Tests
         run: mvn clean test
@@ -68,28 +73,25 @@ jobs:
       - name: Generate Allure Report
         run: mvn allure:report
 
-      # DEBUG STEP
-      - name: List Generated Files
-        run: |
-          dir
-          dir target
-          dir target\site
-          dir target\site /s
-
-      - name: Upload Pages Artifact
+      - name: Upload Allure Report
         uses: actions/upload-pages-artifact@v3
         with:
-          path: target/site/allure-maven
+          path: target/site/allure-maven-plugin
 
   deploy-report:
     needs: run-tests
     runs-on: windows-latest
 
+    environment:
+      name: github-pages
+
     steps:
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
 
-      - name: Show Report URL
+      - name: Show Allure Report URL
         run: |
-          echo "## Allure Report" >> $env:GITHUB_STEP_SUMMARY
-          echo "https://nanthithasg03-2004.github.io/SeleniumProject/" >> $env:GITHUB_STEP_SUMMARY
+          echo "## ✅ Allure Report" >> $env:GITHUB_STEP_SUMMARY
+          echo "" >> $env:GITHUB_STEP_SUMMARY
+          echo "🔗 https://nanthithasg03-2004.github.io/SeleniumProject/" >> $env:GITHUB_STEP_SUMMARY
