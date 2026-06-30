@@ -42,9 +42,6 @@ jobs:
   run-tests:
     runs-on: windows-latest
 
-    environment:
-      name: github-pages
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -60,10 +57,8 @@ jobs:
         with:
           path: ~/.m2
           key: maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            maven-
 
-      - name: Execute Selenium Tests
+      - name: Run Tests
         run: mvn clean test
         env:
           ENV: ${{ inputs.env }}
@@ -73,13 +68,13 @@ jobs:
       - name: Generate Allure Report
         run: mvn allure:report
 
-      #  FIX: Create correct folder for GitHub Pages
       - name: Prepare Pages Folder
+        shell: pwsh
         run: |
-          mkdir public
-          cp -r target/site/allure-maven-plugin/* public/
+          New-Item -ItemType Directory -Force -Path public
+          Copy-Item -Path target/site/allure-maven-plugin/* -Destination public -Recurse -Force
 
-      - name: Upload Allure Report
+      - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: public
@@ -88,16 +83,15 @@ jobs:
     needs: run-tests
     runs-on: windows-latest
 
-    environment:
-      name: github-pages
+    permissions:
+      pages: write
+      id-token: write
 
     steps:
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v4
 
-      - name: Show Allure Report URL
+      - name: Show Report URL
         run: |
-          echo "##  Allure Report" >> $env:GITHUB_STEP_SUMMARY
-          echo "" >> $env:GITHUB_STEP_SUMMARY
-          echo " https://nanthithasg03-2004.github.io/SeleniumProject/" >> $env:GITHUB_STEP_SUMMARY
+          echo "## Allure Report" >> $env:GITHUB_STEP_SUMMARY
+          echo "https://nanthithasg03-2004.github.io/SeleniumProject/" >> $env:GITHUB_STEP_SUMMARY
