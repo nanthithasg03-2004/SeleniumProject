@@ -45,32 +45,29 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ inputs.version }}
+          cache: maven
 
-      - name: Cache Maven Dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: maven-${{ hashFiles('**/pom.xml') }}
-
-      # 🔥 RUN TESTS + GENERATE ALLURE RESULTS
-      - name: Run Tests
+      - name: Run Tests (Generate Allure Results)
         run: mvn clean test
         env:
           ENV: ${{ inputs.env }}
           BROWSER: ${{ inputs.browser }}
           THREADS: ${{ inputs.threads }}
 
-      # 🔥 GENERATE ALLURE HTML REPORT
+      - name: Verify Allure Results
+        run: ls -R target || true
+
       - name: Generate Allure Report
         run: mvn allure:report
 
-      # 🔥 COPY ONLY REAL ALLURE REPORT FOLDER
+      - name: Verify Allure HTML Report
+        run: ls -R target/site || true
+
       - name: Prepare Pages Folder
         run: |
           mkdir -p public
           cp -r target/site/allure-maven-plugin/* public/
 
-      # 🔥 UPLOAD ARTIFACT
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
