@@ -1,19 +1,18 @@
-name: Selenium CI Pipeline
+name: Selenium Execution Pipeline
 
 on:
-  push:
-
   workflow_dispatch:
     inputs:
-      environment:
+      env:
         description: "Select Environment"
         required: true
         default: "qa"
         type: choice
         options:
-          - qa
           - dev
+          - qa
           - stage
+          - prod
 
       browser:
         description: "Select Browser"
@@ -24,80 +23,70 @@ on:
           - chrome
           - firefox
 
+      version:
+        description: "Java Version"
+        required: true
+        default: "21"
+
       threads:
-        description: "Parallel Threads"
+        description: "Parallel Workers"
         required: true
         default: "2"
 
-      node_version:
-        description: "Select Node Version"
-        required: true
-        default: "18"
-        type: choice
-        options:
-          - 16
-          - 18
-          - 20
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
-  test:
+  run-tests:
     runs-on: windows-latest
 
-    env:
-      ENV: ${{ inputs.environment }}
-      BROWSER: ${{ inputs.browser }}
-      THREADS: ${{ inputs.threads }}
-
     steps:
-
-      # 1. Checkout code
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. Setup Java
+      # Setup Java
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '21'
+          distribution: temurin
+          java-version: ${{ inputs.version }}
 
-      # 3. Setup Node (from workflow input)
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ inputs.node_version }}
-
-      # 4. Cache Maven dependencies
-      - name: Cache Maven dependencies
+      # Cache Maven
+      - name: Cache Maven Dependencies
         uses: actions/cache@v4
         with:
           path: ~/.m2
           key: maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: maven
 
-      # 5. Build project
-      - name: Build Project
-        run: mvn clean install
-
-      # 6. Run Tests
-      - name: Execute Tests
+      # Run Selenium Tests
+      - name: Execute Selenium Tests
         run: mvn clean test
+        env:
+          ENV: ${{ inputs.env }}
+          BROWSER: ${{ inputs.browser }}
+          THREADS: ${{ inputs.threads }}
 
-      # 7. Install Allure CLI (Windows)
-      - name: Install Allure
-        run: |
-          Invoke-WebRequest -Uri https://github.com/allure-framework/allure2/releases/download/2.25.0/allure-2.25.0.zip -OutFile allure.zip
-          Expand-Archive allure.zip
-          Move-Item allure-2.25.0 C:\allure
-          echo "C:\allure\bin" | Out-File -Append $env:GITHUB_PATH
-
-      # 8. Generate Allure Report
+      # Generate Allure Report
       - name: Generate Allure Report
-        run: allure generate target/allure-results -o allure-report --clean
+        run: mvn allure:report
 
-      # 9. Deploy Report to GitHub Pages (LIVE LINK)
-      - name: Deploy Allure Report
-        uses: peaceiris/actions-gh-pages@v3
+      # Upload report for GitHub Pages
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: allure-report
+          path: target/site/allure-maven
+
+  deploy-report:
+    needs: run-tests
+    runs-on: windows-latest
+
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+
+      - name: Show Report URL
+        run: |
+          echo "## Allure Report" >> $GITHUB_STEP_SUMMARY
+          echo "https://nanthithasg03-2004.github.io/SeleniumProject/" >> $GITHUB_STEP_SUMMARY
