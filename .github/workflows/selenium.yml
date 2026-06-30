@@ -73,10 +73,16 @@ jobs:
       - name: Generate Allure Report
         run: mvn allure:report
 
+      #  FIX: Create correct folder for GitHub Pages
+      - name: Prepare Pages Folder
+        run: |
+          mkdir public
+          cp -r target/site/allure-maven-plugin/* public/
+
       - name: Upload Allure Report
         uses: actions/upload-pages-artifact@v3
         with:
-          path: target/site/allure-maven-plugin
+          path: public
 
   deploy-report:
     needs: run-tests
@@ -92,6 +98,6 @@ jobs:
 
       - name: Show Allure Report URL
         run: |
-          echo "## ✅ Allure Report" >> $env:GITHUB_STEP_SUMMARY
+          echo "##  Allure Report" >> $env:GITHUB_STEP_SUMMARY
           echo "" >> $env:GITHUB_STEP_SUMMARY
-          echo "🔗 https://nanthithasg03-2004.github.io/SeleniumProject/" >> $env:GITHUB_STEP_SUMMARY
+          echo " https://nanthithasg03-2004.github.io/SeleniumProject/" >> $env:GITHUB_STEP_SUMMARY
