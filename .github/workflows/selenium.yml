@@ -8,20 +8,14 @@ on:
         required: true
         default: "qa"
         type: choice
-        options:
-          - dev
-          - qa
-          - stage
-          - prod
+        options: [dev, qa, stage, prod]
 
       browser:
         description: "Select Browser"
         required: true
         default: "chrome"
         type: choice
-        options:
-          - chrome
-          - firefox
+        options: [chrome, firefox]
 
       version:
         description: "Java Version"
@@ -40,7 +34,7 @@ permissions:
 
 jobs:
   run-tests:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
@@ -58,36 +52,25 @@ jobs:
           path: ~/.m2
           key: maven-${{ hashFiles('**/pom.xml') }}
 
-      - name: Run Tests + Generate Allure Report
-        run: mvn clean test allure:report
+      # 🔥 RUN TESTS + GENERATE ALLURE RESULTS
+      - name: Run Tests
+        run: mvn clean test
         env:
           ENV: ${{ inputs.env }}
           BROWSER: ${{ inputs.browser }}
           THREADS: ${{ inputs.threads }}
 
-      # 🔥 ALWAYS FIND REAL index.html (NO GUESSING)
+      # 🔥 GENERATE ALLURE HTML REPORT
+      - name: Generate Allure Report
+        run: mvn allure:report
+
+      # 🔥 COPY ONLY REAL ALLURE REPORT FOLDER
       - name: Prepare Pages Folder
-        shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path public
+          mkdir -p public
+          cp -r target/site/allure-maven-plugin/* public/
 
-          $index = Get-ChildItem -Path target -Recurse -Filter index.html | Select-Object -First 1
-
-          if ($null -eq $index) {
-            Write-Host "ERROR: index.html NOT FOUND - Allure report not generated"
-            Get-ChildItem -Recurse target
-            exit 1
-          }
-
-          Write-Host "Found report: $($index.FullName)"
-
-          $source = Split-Path $index.FullName
-
-          Copy-Item "$source\*" public -Recurse -Force
-
-          Write-Host "Public folder contents:"
-          Get-ChildItem public
-
+      # 🔥 UPLOAD ARTIFACT
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -95,7 +78,7 @@ jobs:
 
   deploy-report:
     needs: run-tests
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     permissions:
       pages: write
@@ -106,6 +89,4 @@ jobs:
         uses: actions/deploy-pages@v4
 
       - name: Show Report URL
-        run: |
-          echo "## Allure Report" >> $env:GITHUB_STEP_SUMMARY
-          echo "https://nanthithasg03-2004.github.io/SeleniumProject/" >> $env:GITHUB_STEP_SUMMARY
+        run: echo "https://nanthithasg03-2004.github.io/SeleniumProject/" >> $GITHUB_STEP_SUMMARY
